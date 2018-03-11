@@ -1,0 +1,85 @@
+---
+title: "The Effect of Vitamin C on Tooth Growth in Guinea Pigs"
+author: "Alex Van Russelt"
+date: "17 December 2017"
+output:
+  pdf_document:
+    latex_engine: xelatex
+  html_document:
+    df_print: paged
+header-includes:
+- \usepackage[sfdefault]{roboto}
+- \renewcommand{\familydefault}{\sfdefault}
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Introduction
+This document explores the `ToothGrowth` data present provided by the R datasets library, and performs some basic hypothesis testing to draw conclusions on the data.
+
+The documentation for this data reveals it originited from Crampton, E. W. in a 1947 paper, which investigated the length of odontoblasts (cells responsible for tooth growth) in a group of guinea pigs that received daily doses of vitamin C from one of two different methods (orange juice and ascorbic acid).
+
+
+## Exploration
+```{r, warning=FALSE, message=FALSE}
+library(ggplot2)
+library(dplyr)
+library(knitr)
+```
+
+```{r}
+data(ToothGrowth)
+dim(ToothGrowth)
+str(ToothGrowth)
+```
+The ToothGrowth data has 60 rows and 3 columns. Three variables are present.
+
+```{r}
+kable(as.matrix(table(ToothGrowth$supp)))
+kable(as.matrix(table(ToothGrowth$dose)))
+kable(as.matrix(summary(ToothGrowth$len)))
+```
+Consulting the accompanying documentation, it appears that `len` refers to the length of odontoblasts (units unknown), `supp` refers to the source of vitamin C, and `dose` refers to the dosage level in mg/day. There are two values present in the `supp` column: `OJ` refers to orange juice, and `VC` refers to ascorbic acid.
+
+```{r}
+g <- ggplot(ToothGrowth, aes(x=supp, y=len, fill=supp))
+g + geom_boxplot() + facet_grid(. ~ dose, labeller=label_both) +
+  labs(x='Supplement', y='Tooth length') + guides(fill=FALSE)
+```
+
+Inspecting the plot above, it appears that guinea pigs that received orange juice had longer odontoblasts compared to those that received ascorbic acid, but only when the dose was 0.5 mg/day or 1.0 mg/day. When the dose was 2.0 mg/day, there does not appear to be a significant difference.
+
+To determine whether the difference is significant, hypothesis tests can be performed.
+
+## Hypothesis testing
+
+### Hypothesis 1: at dose levels of 0.5~mg/day, there is a significant in odontoblast length between orange juice and ascorbic acid
+```{r, warning=FALSE}
+t.test(len ~ supp, data=filter(ToothGrowth, dose==0.5))
+```
+The confidence interval excludes zero, and the *p*-value is equal to 0.006, which is significantly less than 0.05. Therefore, we can reject the null hypothesis, and conclude that orange juice results in longer odontoblasts when compared to ascorbic acid for dosage levels of 0.5~mg/day.
+
+### Hypothesis 2: at dose levels of 1.0~mg/day, there is a significant in odontoblast length between orange juice and ascorbic acid
+```{r, warning=FALSE}
+t.test(len ~ supp, data=filter(ToothGrowth, dose==1))
+```
+The confidence interval excludes zero, and the *p*-value is equal to 0.001, which is significantly less than 0.05. Therefore, we can reject the null hypothesis, and conclude that orange juice results in longer odontoblasts when compared to ascorbic acid for dosage levels of 1.0~mg/day.
+
+### Hypothesis 3: at dose levels of 2.0~mg/day, there is a significant in odontoblast length between orange juice and ascorbic acid
+```{r, warning=FALSE}
+t.test(len ~ supp, data=filter(ToothGrowth, dose==2))
+```
+The confidence interval does *not* excludes zero, and the *p*-value is equal to 0.96, which is far greater than 0.05. Therefore, we *cannot* reject the null hypothesis, and conclude that there is no evidence to suggest that orange juice results in longer odontoblasts when compared to ascorbic acid for dosage levels of 2.0~mg/day.
+
+## Conclusions
+
+Assuming that:
+
+1. The guinea pigs that were used as this study were representative of the wider guinea pig population;
+2. The variances of the `OJ` and `AC` populations were not equal (since the default `var.equal=FALSE` parameter has been used when calling the `t.test` function);
+
+Then:
+
+1. Guinea pig odontoblasts are longer when orange juice has been used to deliver vitamin C in dosage levels of 0.5 or 1.0 mg/day, compared to guinea pigs which received the equivalent dose of ascorbic acid.
+2. Guinea pig odontoblasts are no different when orange juice has been used to deliver vitamin C in dosage levels of 2.0 mg/day, compared to guinea pigs which received the equivalent dose of ascorbic acid.
+

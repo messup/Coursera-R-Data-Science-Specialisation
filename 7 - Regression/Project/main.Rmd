@@ -1,0 +1,93 @@
+---
+title: "Influence of Transmission Type on Car Fuel Efficiency"
+author: "Alex Van Russelt"
+date: "20 December 2017"
+output:
+  pdf_document:
+    latex_engine: xelatex
+  html_document:
+    df_print: paged
+header-includes:
+- \usepackage[sfdefault]{roboto}
+- \renewcommand{\familydefault}{\sfdefault}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Summary
+This document addresses the task set by the Coursera Regression Models project, which was to investigate the difference in fuel efficiency between automatic and manual cars.
+
+By applying a linear model that took into account the weight of the car, the type of transmission, and the interaction between those two parameters, it was found that cars with a weight less than 2800 lbs were more fuel efficient if they had manual transmissions rather than automatic.
+
+
+## Exploration
+```{r, message=FALSE, warning=FALSE}
+library(ggplot2)
+
+data(mtcars)
+mtcars$am <- factor(mtcars$am)
+levels(mtcars$am) <- c("Automatic", "Manual")
+```
+
+```{r}
+ggplot(mtcars, aes(am, mpg)) + geom_boxplot() +
+  labs(x='Transmission type', y='Fuel efficiency (miles per gallon)')
+```
+
+On average, manual appear to be significantly more fuel efficient that automatics. However, this could be confounded by other parameters, such as vehicle weight or engine displacement.
+
+## Model
+
+As shown in the lecture, a large amount of the variance in mpg can be explained by weight alone, so it would make sense to include this variable in the linear model:
+```{r}
+fit1 <- lm(mpg ~ am + wt, data=mtcars)
+summary(fit1)
+```
+
+However, the coefficient for `am1` has a *p*-value close to 1, so this particular model may be rejected. Instead, we could consider the interaction between `am` and `wt`:
+```{r, message=FALSE, warning=FALSE}
+fit2 <- lm(mpg ~ factor(am) * wt, data=mtcars)
+summary(fit2)
+```
+
+This appears to result in a better model, since all coefficient *p*-values are significantly less than the typical threshold of 0.05, the residual standard error has reduced, and the $R^2$ has increased.
+
+```{r}
+par(mfrow=c(2, 2))
+plot(fit2)
+```
+The residual plots do not show any anomalous trends, although the upper tail of the distribution of residuals does not appear to be normal.
+
+
+Let's visualise the model:
+
+```{r}
+am <- factor(c(rep("Automatic", 5), rep("Manual", 5)))
+wt <- rep(seq(1.5, 5.5, length=5), 2)
+df <- data.frame(am, wt)
+df$mpg <- predict(fit2, df)
+ggplot(mtcars, aes(x=wt, y=mpg, col=am)) + geom_point() + geom_line(data=df) +
+  labs(x='Car weight (1000 lbs)', y='Fuel efficiency (miles per gallon',
+       color='Transmission type')
+```
+
+There appears to be a critical car weight above which automatic vehicles have higher fuel efficiency that manual vehicles. The critical value can be calculated by dividing the `factor(am)Manual` coefficient by the `factor(am)Manual:wt` coefficient to show that the critical weight is approximately 2800 lbs:
+
+```{r}
+14.878 / 5.2984 * 1000
+```
+
+The difference in fuel efficiencies can be calculated by looking at the gradients for each transmission, which are different by approximately 1.5 mpg:
+
+```{r}
+5.2984 - 3.7859
+```
+
+## Conclusions
+We can conclude with a confidence level *p* < 0.05 that for the cars present in this dataset:
+
+* For every 1000 lbs *below* 2800 lbs a car's weight was, a manual transmission was 1.5 mpg *more* fuel efficient than an equivalent automatic.
+* For every 1000 lbs *above* 2800 lbs a car's weight was, a manual transmission was 1.5 mpg *less* fuel efficient than an equivalent automatic.
+
+In addition, the 2 sigma prediction interval associated with the model described above is 5.2 mpg.

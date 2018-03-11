@@ -1,0 +1,32 @@
+---
+title: "mtcars visualisation"
+author: "Alex Van Russelt"
+date: "29 December 2017"
+output:
+  slidy_presentation: default
+  ioslides_presentation: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Introduction
+
+This is a visualisation of the mtcars dataset made to satisfy the week 3 assignment of the Coursera Data Products course.
+
+## Interactive plot
+
+```{r, message=FALSE, warning=FALSE}
+library(plotly)
+data(mtcars)
+```
+
+```{r, message=FALSE, warning=FALSE}
+plot_ly(mtcars, x=~wt, y=~disp, 
+        type='scatter', mode='markers', 
+        text=row.names(mtcars), hoverinfo="text") %>%
+  layout(xaxis=list(title='Weight (1000 lbs)'),
+         yaxis=list(title='Displacement (cu. in.)'),
+         title='Displacement against vehicle weight')
+```

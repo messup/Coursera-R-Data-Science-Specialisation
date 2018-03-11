@@ -1,0 +1,61 @@
+---
+title: "Pitch presentation"
+author: "Alex Van Russelt"
+date: "29 December 2017"
+output:
+  slidy_presentation: default
+  ioslides_presentation: default
+  beamer_presentation: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Introduction
+
+This shiny web app is intended to allow a user to visualise the relationship between fuel effiency and other variables present in the mtcars dataset. 
+
+The user is able to:
+
+* Select which variable to plot on the *x*-axis using a dropdown box.
+* Choose whether to visualise data from vehicles with manual tranmissions or from those with automatic tranmissions.
+
+## Introduction to the `mtcars` dataset
+The following information is taken from the `mtcars` help file:
+
+>The data was extracted from the 1974 Motor Trend US magazine, and comprises fuel consumption and 10 aspects of automobile design and performance for 32 automobiles (1973–74 models).
+
+To confirm this is the case, we may check that there are 11 features and 32 observations:
+```{r, echo=TRUE}
+data(mtcars)
+message("Total number of features:", ncol(mtcars))
+message("Total number of observations:", nrow(mtcars))
+```
+
+
+## Histogram of fuel efficiencies
+
+This plot shows the distribution of fuel efficiencies present in the `mtcars` dataset:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+ggplot(data=mtcars, aes(x=mpg)) + geom_histogram(binwidth=2, fill='red')
+```
+
+
+##Available *x* variables
+
+The following variables are available to plot on the *x* axis:
+
+| Field  | Detail                 |
+| -----  | ------                 |
+| `cyl`  | Number of cylinders    |
+| `disp` | Displacement (cu.in.)  |
+| `hp`   | Gross horsepower       |
+| `drat` | Rear axle ratio        |
+| `wt`   | Weight (lb/1000)       |
+| `qsec` | 1/4 mile time          |
+| `vs`   | V/S                    |
+| `gear` | Number of forward gears|
+| `carb` | Number of carburetors  |
